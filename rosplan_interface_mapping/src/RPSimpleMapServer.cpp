@@ -85,7 +85,7 @@ namespace KCL_rosplan {
 			for (std::vector<std::string>::iterator nit=wit->second->neighbours.begin(); nit!=wit->second->neighbours.end(); ++nit) {
 				rosplan_knowledge_msgs::KnowledgeUpdateService updatePredSrv;
 				updatePredSrv.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-				updatePredSrv.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::DOMAIN_ATTRIBUTE;
+				updatePredSrv.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
 				updatePredSrv.request.knowledge.attribute_name = "connected";
 				diagnostic_msgs::KeyValue pairFrom;
 				pairFrom.key = "from";
@@ -102,7 +102,7 @@ namespace KCL_rosplan {
 			for (std::vector<std::string>::iterator nit=wit->second->neighbours.begin(); nit!=wit->second->neighbours.end(); ++nit) {
 				rosplan_knowledge_msgs::KnowledgeUpdateService updateFuncSrv;
 				updateFuncSrv.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-				updateFuncSrv.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::DOMAIN_FUNCTION;
+				updateFuncSrv.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FUNCTION;
 				updateFuncSrv.request.knowledge.attribute_name = "distance";
 				diagnostic_msgs::KeyValue pairFrom;
 				pairFrom.key = "wp1";
@@ -132,20 +132,6 @@ namespace KCL_rosplan {
 			std::string id(message_store.insertNamed(wit->first, pose));
 			db_name_map[wit->first] = id;
 		}
-
-		// robot start position (TODO remove)
-		updateSrv.request.update_type = rosplan_knowledge_msgs::KnowledgeUpdateService::Request::ADD_KNOWLEDGE;
-		updateSrv.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::DOMAIN_ATTRIBUTE;
-		updateSrv.request.knowledge.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::DOMAIN_ATTRIBUTE;
-		updateSrv.request.knowledge.attribute_name = "robot_at";
-		diagnostic_msgs::KeyValue pair1, pair2;
-		pair1.key = "v";
-		pair1.value = "kenny";
-		updateSrv.request.knowledge.values.push_back(pair1);
-		pair2.key = "wp";
-		pair2.value = "wp0";
-		updateSrv.request.knowledge.values.push_back(pair2);
-		update_knowledge_client.call(updateSrv);
 
 		ROS_INFO("KCL: (RPSimpleMapServer) Done");
 		return true;
