@@ -2,7 +2,11 @@
 <launch>
 
 	<!-- turtlebot simulation -->
+<<<<<<< HEAD
 	<include file="$(find turtlebot_gazebo)/launch/turtlebot_playground.launch" >
+=======
+	<include file="$(find turtlebot_gazebo)/launch/turtlebot_world.launch" >
+>>>>>>> 3b1b5b8257049b60ed4cbd15d0d0e6b4f1a3f730
 	</include>
 	<include file="$(find turtlebot_gazebo)/launch/amcl_demo.launch" >
 	</include>

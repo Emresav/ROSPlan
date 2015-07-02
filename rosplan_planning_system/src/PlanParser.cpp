@@ -130,7 +130,10 @@ namespace KCL_rosplan {
 						action_list.push_back(potentialPlan[i]);
 						generateFilter(environment);
 					}
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3b1b5b8257049b60ed4cbd15d0d0e6b4f1a3f730
 					total_plan_duration = planDuration;
 
 				} else {
@@ -140,7 +143,10 @@ namespace KCL_rosplan {
 		}
 		planfile.close();
 	}
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3b1b5b8257049b60ed4cbd15d0d0e6b4f1a3f730
 	/**
 	 * processes the parameters of a single PDDL action into an ActionDispatch message
 	 */
@@ -168,6 +174,7 @@ namespace KCL_rosplan {
 			// prepare object attributes for the knowledge filter
 			for(size_t i=0; i<environment.domain_operator_precondition_map[msg.name].size(); i++) {
 				std::vector<std::string> filterAttribute;
+<<<<<<< HEAD
 				std::vector<std::string> precondition = environment.domain_operator_precondition_map[msg.name][i];
 				filterAttribute.push_back(precondition[0]);
 				for(size_t j=1; j<precondition.size(); j++) {
@@ -176,6 +183,19 @@ namespace KCL_rosplan {
 					// instance name
 					for(size_t k=0;k<ait->second.size();k++) {
 						if(0==ait->second[k].compare(precondition[j]))
+=======
+				timedCondition precondition = environment.domain_operator_precondition_map[msg.name][i];
+				//Needed to convert struct to individual strings to keep the same data structure
+				filterAttribute.push_back(precondition.prop_name); //get proposition name of the precondition
+				filterAttribute.push_back(precondition.time_spec); //get time_spec 
+				
+					for (std::vector<string>::const_iterator it = precondition.param_name.begin() ; it != precondition.param_name.end() ; it++){
+					// label
+					filterAttribute.push_back(*it); 
+					// instance name
+					for(size_t k=0;k<ait->second.size();k++) {
+						if(0==ait->second[k].compare(*it))
+>>>>>>> 3b1b5b8257049b60ed4cbd15d0d0e6b4f1a3f730
 							filterAttribute.push_back(params[k]);
 					}
 				}
@@ -210,9 +230,15 @@ namespace KCL_rosplan {
 			rosplan_knowledge_msgs::KnowledgeItem filterItem;
 			filterItem.knowledge_type = rosplan_knowledge_msgs::KnowledgeItem::FACT;
 			filterItem.attribute_name = filter_attributes[i][0];
+<<<<<<< HEAD
 			filterItem.instance_type = environment.object_type_map[filter_attributes[i][1]];
 			filterItem.instance_name = filter_attributes[i][1];
 			for(size_t j=2; j<filter_attributes[i].size()-1; j+=2) {
+=======
+			filterItem.instance_type = environment.object_type_map[filter_attributes[i][2]];
+			filterItem.instance_name = filter_attributes[i][2];
+			for(size_t j=3; j<filter_attributes[i].size()-1; j+=2) {
+>>>>>>> 3b1b5b8257049b60ed4cbd15d0d0e6b4f1a3f730
 				diagnostic_msgs::KeyValue pair;
 				pair.key = filter_attributes[i][j];
 				pair.value = filter_attributes[i][j+1];

@@ -27,7 +27,17 @@ namespace VAL {
 
 namespace KCL_rosplan
 {
+<<<<<<< HEAD
 
+=======
+	//timed condition struct
+		struct timedCondition {
+		std::string prop_name;
+		std::vector<std::string> param_name;
+		std::string time_spec;
+		}; 
+		
+>>>>>>> 3b1b5b8257049b60ed4cbd15d0d0e6b4f1a3f730
 	class PlanningEnvironment
 	{
 	private:
@@ -54,7 +64,11 @@ namespace KCL_rosplan
 		std::map<std::string,std::vector<std::string> > domain_functions;
 
 		// maps operator name to a list of preconditions; stored as [pred_name, label_0, label_1, ...]
+<<<<<<< HEAD
 		std::map<std::string, std::vector<std::vector<std::string> > > domain_operator_precondition_map;
+=======
+		std::map<std::string, std::vector<timedCondition> > domain_operator_precondition_map;
+>>>>>>> 3b1b5b8257049b60ed4cbd15d0d0e6b4f1a3f730
 
 		/* problem information */
 		std::vector<rosplan_knowledge_msgs::KnowledgeItem> instance_attributes;
