@@ -58,10 +58,44 @@ namespace KCL_rosplan {
 		ROS_INFO("KCL: (PS) Command received: %s", msg->data.c_str());
 		if(msg->data == "plan") {
 			if(system_status == READY) {
-				system_status = PLANNING;
 				ROS_INFO("KCL: (PS) Processing planning request");
 				std_srvs::Empty srv;
 				runPlanningServer(srv.request,srv.response);
+			}
+		} else if(msg->data == "pause") {
+			if(system_status == DISPATCHING && !plan_dispatcher.dispatch_paused) {
+				ROS_INFO("KCL: (PS) Pausing dispatch");
+				plan_dispatcher.dispatch_paused = true;
+				system_status = PAUSED;
+				// produce status message
+				std_msgs::String statusMsg;
+				statusMsg.data = "Paused";
+				state_publisher.publish(statusMsg);
+			} else if(system_status == PAUSED) {
+				ROS_INFO("KCL: (PS) Resuming dispatch");
+				plan_dispatcher.dispatch_paused = false;
+				system_status = DISPATCHING;
+				// produce status message
+				std_msgs::String statusMsg;
+				statusMsg.data = "Dispatching";
+				state_publisher.publish(statusMsg);
+			}
+		} else if(msg->data == "cancel") {
+			switch(system_status) {
+				case PLANNING:
+				case DISPATCHING:
+				case PAUSED:
+					ROS_INFO("KCL: (PS) Cancelling");
+					plan_dispatcher.plan_cancelled = true;
+					break;
+			}
+			if(system_status == PAUSED ) {
+				plan_dispatcher.dispatch_paused = false;
+				system_status = DISPATCHING;
+				// produce status message
+				std_msgs::String statusMsg;
+				statusMsg.data = "Dispatching";
+				state_publisher.publish(statusMsg);
 			}
 		}
 	}
@@ -71,10 +105,12 @@ namespace KCL_rosplan {
 	 */
 	bool PlanningSystem::runPlanningServer(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res) {
 
+		if(system_status != READY) return false;
+
+		system_status = PLANNING;
 		std_msgs::String statusMsg;
 		statusMsg.data = "Planning";
 		state_publisher.publish(statusMsg);
-		system_status = PLANNING;
 
 		ros::NodeHandle nh("~");
 
@@ -101,7 +137,7 @@ namespace KCL_rosplan {
 
 		bool planSucceeded = false;
 		mission_start_time = ros::WallTime::now().toSec();
-		while(!planSucceeded) {
+		while(!planSucceeded && !plan_dispatcher.plan_cancelled) {
 
 			statusMsg.data = "Planning";
 			state_publisher.publish(statusMsg);
@@ -216,9 +252,10 @@ namespace KCL_rosplan {
 		// publishing system_state
 		planningSystem.state_publisher = nh.advertise<std_msgs::String>("/kcl_rosplan/system_state", 5, true);
 
-		// publishing "action_dispatch", "plan"; listening "action_feedback"
+		// publishing "action_dispatch", "action_feedback", "plan"; listening "action_feedback"
 		planningSystem.plan_publisher = nh.advertise<rosplan_dispatch_msgs::CompletePlan>("/kcl_rosplan/plan", 5, true);
 		planningSystem.plan_dispatcher.action_publisher = nh.advertise<rosplan_dispatch_msgs::ActionDispatch>("/kcl_rosplan/action_dispatch", 1000, true);
+		planningSystem.plan_dispatcher.action_feedback_pub = nh.advertise<rosplan_dispatch_msgs::ActionFeedback>("/kcl_rosplan/action_feedback", 5, true);
 		ros::Subscriber feedback_sub = nh.subscribe("/kcl_rosplan/action_feedback", 10, &KCL_rosplan::PlanDispatcher::feedbackCallback, &planningSystem.plan_dispatcher);
 		ros::Subscriber command_sub = nh.subscribe("/kcl_rosplan/planning_commands", 10, &KCL_rosplan::PlanningSystem::commandCallback, &planningSystem);
 

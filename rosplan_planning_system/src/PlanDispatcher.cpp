@@ -8,11 +8,12 @@ namespace KCL_rosplan {
 	}
 
 	void PlanDispatcher::reset() {
+		replan_requested = false;
 		dispatch_paused = false;
+		plan_cancelled = false;
 		current_action = 0;
 		action_received.clear();
 		action_completed.clear();
-		replan_requested = false;
 	}
 
 	/*-----------------*/
@@ -31,6 +32,17 @@ namespace KCL_rosplan {
 		replan_requested = false;
 		bool repeatAction = false;
 		while (ros::ok() && actionList.size() > current_action) {
+
+			// loop while dispatch is paused
+			while (ros::ok() && dispatch_paused) {
+				ros::spinOnce();
+				loop_rate.sleep();
+			}
+
+			// cancel plan
+			if(plan_cancelled) {
+				break;
+			}
 
 			// get next action
 			rosplan_dispatch_msgs::ActionDispatch currentMessage = actionList[current_action];
@@ -56,6 +68,13 @@ namespace KCL_rosplan {
 
 			if(!checkPreconditions(currentMessage)) {
 				ROS_INFO("KCL: (PS) Preconditions not achieved [%i, %s]", currentMessage.action_id, currentMessage.name.c_str());
+
+				// publish feedback (precondition false)
+				rosplan_dispatch_msgs::ActionFeedback fb;
+				fb.action_id = currentMessage.action_id;
+				fb.status = "precondition false";
+				action_feedback_pub.publish(fb);
+
 				replan_requested = true;
 			} else {
 
@@ -168,7 +187,7 @@ namespace KCL_rosplan {
 	void PlanDispatcher::feedbackCallback(const rosplan_dispatch_msgs::ActionFeedback::ConstPtr& msg) {
 
 		// create error if the action is unrecognised
-		ROS_INFO("KCL: (PS) Feedback received [%i,%s]", msg->action_id, msg->status.c_str());
+		ROS_INFO("KCL: (PS) Feedback received [%i, %s]", msg->action_id, msg->status.c_str());
 		if(current_action != (unsigned int)msg->action_id)
 			ROS_ERROR("KCL: (PS) Unexpected action ID: %d; current action: %zu", msg->action_id, current_action);
 
